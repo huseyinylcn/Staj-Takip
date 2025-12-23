@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staj Takip Sistemi</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h1>Staj Takip Sistemi</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-success" onclick="yeniOgrenciModal()">
+                        <i class="fas fa-user-plus"></i> Yeni Öğrenci
+                    </button>
+                    <button class="btn btn-primary" onclick="excelExport()">
+                        <i class="fas fa-file-excel"></i> Excel İndir
+                    </button>
+                    <button class="btn btn-info" onclick="excelImportModal()">
+                        <i class="fas fa-file-upload"></i> Excel Yükle
+                    </button>
+                    <button class="btn btn-warning" onclick="raporIndir()">
+                        <i class="fas fa-chart-bar"></i> Rapor
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- İstatistikler -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <div class="stat-info">
+                    <h3 id="toplamOgrenci">0</h3>
+                    <p>Toplam Öğrenci</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-clipboard-check"></i>
+                <div class="stat-info">
+                    <h3 id="degerlendirilenler">0</h3>
+                    <p>Değerlendirilen</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-notes-medical"></i>
+                <div class="stat-info">
+                    <h3 id="toplamZiyaret">0</h3>
+                    <p>Toplam Ziyaret</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Harf Notu Dağılımı Grafiği -->
+        <div class="chart-container">
+            <h2><i class="fas fa-chart-pie"></i> Harf Notu Dağılımı</h2>
+            <div class="chart-wrapper">
+                <canvas id="harfNotuGrafik"></canvas>
+            </div>
+        </div>
+
+        <!-- Arama -->
+        <div class="search-container">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Öğrenci ara (ad, soyad, öğrenci no)..." onkeyup="aramaYap()">
+        </div>
+
+        <!-- Öğrenci Listesi -->
+        <div class="ogrenci-listesi" id="ogrenciListesi">
+            <!-- JavaScript ile doldurulacak -->
+        </div>
+    </div>
+
+    <!-- Yeni Öğrenci Modal -->
+    <div id="yeniOgrenciModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="modalKapat('yeniOgrenciModal')">&times;</span>
+            <h2><i class="fas fa-user-plus"></i> Yeni Öğrenci Ekle</h2>
+            <form id="yeniOgrenciForm" onsubmit="ogrenciEkle(event)">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Ad *</label>
+                    <input type="text" name="ad" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Soyad *</label>
+                    <input type="text" name="soyad" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-id-card"></i> Öğrenci Numarası *</label>
+                    <input type="text" name="ogrenci_no" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> Telefon</label>
+                    <input type="tel" name="telefon" placeholder="(555) 123 45 67">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="modalKapat('yeniOgrenciModal')">İptal</button>
+                    <button type="submit" class="btn btn-success">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Excel Import Modal -->
+    <div id="excelImportModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="modalKapat('excelImportModal')">&times;</span>
+            <h2><i class="fas fa-file-upload"></i> Excel Dosyası Yükle</h2>
+            <div class="upload-area" id="uploadArea">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Dosyayı sürükleyin veya tıklayın</p>
+                <p class="upload-hint">Excel dosyası (.xlsx, .xls)</p>
+                <input type="file" id="excelFile" accept=".xlsx,.xls" onchange="excelImport()" style="display: none;">
+            </div>
+            <div id="uploadSonuc" class="upload-sonuc"></div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="modalKapat('excelImportModal')">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bildirim -->
+    <div id="notification" class="notification"></div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+

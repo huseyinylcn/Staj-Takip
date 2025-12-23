@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Öğrenci Detay - Staj Takip Sistemi</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <a href="/" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Geri
+                </a>
+                <div class="logo">
+                    <i class="fas fa-user-graduate"></i>
+                    <h1 id="ogrenciBaslik">Öğrenci Detay</h1>
+                </div>
+            </div>
+        </header>
+
+        <!-- Öğrenci Bilgileri -->
+        <div class="ogrenci-card">
+            <div class="ogrenci-header">
+                <div class="ogrenci-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="ogrenci-info" id="ogrenciBilgi">
+                    <!-- JavaScript ile doldurulacak -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Menu -->
+        <div class="tab-menu">
+            <button class="tab-btn active" onclick="tabDegistir('ziyaretler')">
+                <i class="fas fa-notes-medical"></i> Ziyaret Notları
+            </button>
+            <button class="tab-btn" onclick="tabDegistir('degerlendirme')">
+                <i class="fas fa-clipboard-check"></i> Staj Değerlendirme
+            </button>
+        </div>
+
+        <!-- Ziyaret Notları Tab -->
+        <div id="ziyaretler" class="tab-content active">
+            <div class="section-header">
+                <h2><i class="fas fa-notes-medical"></i> Ziyaret Notları</h2>
+                <button class="btn btn-success" onclick="ziyaretNotuModal()">
+                    <i class="fas fa-plus"></i> Yeni Not Ekle
+                </button>
+            </div>
+            <div id="ziyaretListesi" class="ziyaret-listesi">
+                <!-- JavaScript ile doldurulacak -->
+            </div>
+        </div>
+
+        <!-- Staj Değerlendirme Tab -->
+        <div id="degerlendirme" class="tab-content">
+            <div class="section-header">
+                <h2><i class="fas fa-clipboard-check"></i> Staj Dosyası Değerlendirme Notu</h2>
+            </div>
+            
+            <form id="degerlendirmeForm" onsubmit="degerlendirmeKaydet(event)">
+                <div class="degerlendirme-card">
+                    <h3>Değerlendirme Kriterleri</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-building"></i> İşyeren Notu
+                                <span class="max-puan">(Max: 30 puan)</span>
+                            </label>
+                            <input type="number" name="isyeren_notu" step="0.1" min="0" max="30" value="0" onchange="toplamHesapla()">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-list"></i> İçindekiler
+                                <span class="max-puan">(Max: 10 puan)</span>
+                            </label>
+                            <input type="number" name="icindekiler" step="0.1" min="0" max="10" value="0" onchange="toplamHesapla()">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-info-circle"></i> Firma Bilgisi
+                                <span class="max-puan">(Max: 10 puan)</span>
+                            </label>
+                            <input type="number" name="firma_bilgisi" step="0.1" min="0" max="10" value="0" onchange="toplamHesapla()">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-align-left"></i> Yazım Düzeni
+                                <span class="max-puan">(Max: 10 puan)</span>
+                            </label>
+                            <input type="number" name="yazim_duzeni" step="0.1" min="0" max="10" value="0" onchange="toplamHesapla()">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-image"></i> Resim & Şekil
+                                <span class="max-puan">(Max: 10 puan)</span>
+                            </label>
+                            <input type="number" name="resim_sekil" step="0.1" min="0" max="10" value="0" onchange="toplamHesapla()">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-language"></i> Dil Kullanımı
+                                <span class="max-puan">(Max: 20 puan)</span>
+                            </label>
+                            <input type="number" name="dil_kullanimi" step="0.1" min="0" max="20" value="0" onchange="toplamHesapla()">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-check-circle"></i> Sonuç Bölümü
+                                <span class="max-puan">(Max: 10 puan)</span>
+                            </label>
+                            <input type="number" name="sonuc_bolumu" step="0.1" min="0" max="10" value="0" onchange="toplamHesapla()">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-book"></i> Defter Düzeni & Mülakat
+                                <span class="max-puan">(Max: 30 puan)</span>
+                            </label>
+                            <input type="number" name="defter_duzeni_mulakat" step="0.1" min="0" max="30" value="0" onchange="toplamHesapla()">
+                        </div>
+                    </div>
+
+                    <div class="sonuc-card">
+                        <div class="sonuc-item">
+                            <span>TOPLAM:</span>
+                            <strong id="toplamPuan">0</strong> / 100
+                        </div>
+                        <div class="sonuc-item">
+                            <span>HARF NOTU:</span>
+                            <strong id="harfNotu" class="harf-notu">-</strong>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-large">
+                            <i class="fas fa-save"></i> Kaydet
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ziyaret Notu Modal -->
+    <div id="ziyaretNotuModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="modalKapat('ziyaretNotuModal')">&times;</span>
+            <h2><i class="fas fa-notes-medical"></i> Yeni Ziyaret Notu</h2>
+            <form id="ziyaretForm" onsubmit="ziyaretNotuEkle(event)">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Öğretmen Adı</label>
+                    <input type="text" name="ogretmen_adi" placeholder="Adınız Soyadınız">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-comment-alt"></i> Not *</label>
+                    <textarea name="not_metni" rows="6" required placeholder="Ziyaret notunuzu buraya yazın..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="modalKapat('ziyaretNotuModal')">İptal</button>
+                    <button type="submit" class="btn btn-success">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bildirim -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        const ogrenciId = {{ ogrenci_id }};
+    </script>
+    <script src="{{ url_for('static', filename='js/ogrenci_detay.js') }}"></script>
+</body>
+</html>
+
