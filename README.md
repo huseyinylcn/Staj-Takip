@@ -107,11 +107,6 @@ chmod +x calistir.sh
 
 > 💡 **Not:** Otomatik kurulum her şeyi sizin için halleder!
 
-## 📖 Detaylı Dökümanlar
-
-- 📘 **[Hızlı Başlangıç](HIZLI_BASLANGIC.md)** - 5 dakikada başlayın!
-- 📗 **[Kullanım Kılavuzu](KULLANIM_KILAVUZU.md)** - Tüm özellikler detaylı anlatım
-- 📙 **[Mimari Dokümantasyon](MIMARI.md)** - Teknik detaylar ve mimari
 
 ## 🎯 Gereksinimler
 
