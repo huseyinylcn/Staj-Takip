@@ -301,16 +301,7 @@ Daha büyük sistemler için PostgreSQL önerilir.
 4. Branch'inizi push edin
 5. Pull request açın
 
-## 📝 Lisans
 
-MIT License - Özgürce kullanabilirsiniz!
-
-## 📞 İletişim & Destek
-
-Sorun yaşarsanız:
-1. `KULLANIM_KILAVUZU.md` dosyasını inceleyin
-2. `MIMARI.md` dosyasında teknik detayları bulun
-3. Issue açın (GitHub)
 
 ## 🎓 Eğitim Amaçlı Kullanım
 
