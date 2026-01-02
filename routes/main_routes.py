@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify, send_file
-from services.staj_service import OgrenciService, ZiyaretService, DegerlendirmeService
+from services.staj_service import OgrenciService, ZiyaretService, DegerlendirmeService, NormalDonemService, SinifService
 from services.excel_service import ExcelService
 import os
 from werkzeug.utils import secure_filename
@@ -12,12 +12,72 @@ def index():
     """Ana sayfa"""
     return render_template('index.html')
 
+# Sınıf işlemleri
+@main_bp.route('/api/siniflar', methods=['GET'])
+def siniflari_getir():
+    """Tüm sınıfları getir"""
+    try:
+        siniflar = SinifService.tum_siniflari_getir()
+        return jsonify({
+            'basarili': True,
+            'siniflar': [s.to_dict() for s in siniflar]
+        })
+    except Exception as e:
+        return jsonify({'basarili': False, 'hata': str(e)}), 500
+
+@main_bp.route('/api/siniflar', methods=['POST'])
+def sinif_ekle():
+    """Yeni sınıf ekle"""
+    try:
+        data = request.get_json()
+        sinif = SinifService.sinif_ekle(ad=data['ad'])
+        return jsonify({
+            'basarili': True,
+            'mesaj': 'Sınıf başarıyla eklendi',
+            'sinif': sinif.to_dict()
+        })
+    except ValueError as e:
+        return jsonify({'basarili': False, 'hata': str(e)}), 400
+    except Exception as e:
+        return jsonify({'basarili': False, 'hata': str(e)}), 500
+
+@main_bp.route('/api/siniflar/<int:sinif_id>', methods=['PUT'])
+def sinif_guncelle(sinif_id):
+    """Sınıf güncelle"""
+    try:
+        data = request.get_json()
+        sinif = SinifService.sinif_guncelle(sinif_id=sinif_id, ad=data['ad'])
+        return jsonify({
+            'basarili': True,
+            'mesaj': 'Sınıf başarıyla güncellendi',
+            'sinif': sinif.to_dict()
+        })
+    except ValueError as e:
+        return jsonify({'basarili': False, 'hata': str(e)}), 400
+    except Exception as e:
+        return jsonify({'basarili': False, 'hata': str(e)}), 500
+
+@main_bp.route('/api/siniflar/<int:sinif_id>', methods=['DELETE'])
+def sinif_sil(sinif_id):
+    """Sınıf sil"""
+    try:
+        SinifService.sinif_sil(sinif_id)
+        return jsonify({
+            'basarili': True,
+            'mesaj': 'Sınıf başarıyla silindi'
+        })
+    except ValueError as e:
+        return jsonify({'basarili': False, 'hata': str(e)}), 400
+    except Exception as e:
+        return jsonify({'basarili': False, 'hata': str(e)}), 500
+
 # Öğrenci işlemleri
 @main_bp.route('/api/ogrenciler', methods=['GET'])
 def ogrencileri_getir():
-    """Tüm öğrencileri getir"""
+    """Tüm öğrencileri getir (opsiyonel: sınıf filtresi)"""
     try:
-        ogrenciler = OgrenciService.tum_ogrencileri_getir()
+        sinif_id = request.args.get('sinif_id', type=int)
+        ogrenciler = OgrenciService.tum_ogrencileri_getir(sinif_id=sinif_id)
         return jsonify({
             'basarili': True,
             'ogrenciler': [o.to_dict() for o in ogrenciler]
@@ -39,11 +99,15 @@ def ogrenci_detay(ogrenci_id):
         # Değerlendirmeyi al
         degerlendirme = DegerlendirmeService.degerlendirme_getir(ogrenci_id)
         
+        # Normal dönem değerlendirmesini al
+        normal_donem = NormalDonemService.degerlendirme_getir(ogrenci_id)
+        
         return jsonify({
             'basarili': True,
             'ogrenci': ogrenci.to_dict(),
             'ziyaretler': [z.to_dict() for z in ziyaretler],
-            'degerlendirme': degerlendirme.to_dict() if degerlendirme else None
+            'degerlendirme': degerlendirme.to_dict() if degerlendirme else None,
+            'normal_donem': normal_donem.to_dict() if normal_donem else None
         })
     except Exception as e:
         return jsonify({'basarili': False, 'hata': str(e)}), 500
@@ -57,7 +121,8 @@ def ogrenci_ekle():
             ad=data['ad'],
             soyad=data['soyad'],
             ogrenci_no=data['ogrenci_no'],
-            telefon=data.get('telefon')
+            telefon=data.get('telefon'),
+            sinif_id=data.get('sinif_id')
         )
         return jsonify({
             'basarili': True,
@@ -78,7 +143,8 @@ def ogrenci_guncelle(ogrenci_id):
             ogrenci_id=ogrenci_id,
             ad=data.get('ad'),
             soyad=data.get('soyad'),
-            telefon=data.get('telefon')
+            telefon=data.get('telefon'),
+            sinif_id=data.get('sinif_id')
         )
         return jsonify({
             'basarili': True,
@@ -169,12 +235,43 @@ def degerlendirme_guncelle(ogrenci_id):
     except Exception as e:
         return jsonify({'basarili': False, 'hata': str(e)}), 500
 
+# Normal dönem değerlendirme işlemleri
+@main_bp.route('/api/normal-donem/<int:ogrenci_id>', methods=['GET'])
+def normal_donem_getir(ogrenci_id):
+    """Öğrenci normal dönem değerlendirmesini getir"""
+    try:
+        degerlendirme = NormalDonemService.degerlendirme_getir(ogrenci_id)
+        return jsonify({
+            'basarili': True,
+            'degerlendirme': degerlendirme.to_dict()
+        })
+    except Exception as e:
+        return jsonify({'basarili': False, 'hata': str(e)}), 500
+
+@main_bp.route('/api/normal-donem/<int:ogrenci_id>', methods=['POST'])
+def normal_donem_guncelle(ogrenci_id):
+    """Normal dönem değerlendirmesini güncelle"""
+    try:
+        data = request.get_json()
+        degerlendirme = NormalDonemService.degerlendirme_guncelle(
+            ogrenci_id=ogrenci_id,
+            **data
+        )
+        return jsonify({
+            'basarili': True,
+            'mesaj': 'Normal dönem değerlendirmesi başarıyla güncellendi',
+            'degerlendirme': degerlendirme.to_dict()
+        })
+    except Exception as e:
+        return jsonify({'basarili': False, 'hata': str(e)}), 500
+
 # Excel işlemleri
 @main_bp.route('/api/excel/export', methods=['GET'])
 def excel_export():
-    """Öğrenci listesini Excel'e aktar"""
+    """Öğrenci listesini Excel'e aktar (opsiyonel: sınıf filtresi)"""
     try:
-        dosya_yolu = ExcelService.ogrencileri_excel_aktar('ogrenci_listesi.xlsx')
+        sinif_id = request.args.get('sinif_id', type=int)
+        dosya_yolu = ExcelService.ogrencileri_excel_aktar('ogrenci_listesi.xlsx', sinif_id=sinif_id)
         return send_file(dosya_yolu, as_attachment=True, download_name='ogrenci_listesi.xlsx')
     except Exception as e:
         return jsonify({'basarili': False, 'hata': str(e)}), 500
@@ -211,10 +308,21 @@ def excel_import():
 
 @main_bp.route('/api/excel/rapor', methods=['GET'])
 def excel_rapor():
-    """Değerlendirme raporu oluştur"""
+    """Staj değerlendirme raporu oluştur (opsiyonel: sınıf filtresi)"""
     try:
-        dosya_yolu = ExcelService.degerlendirme_raporu_olustur('degerlendirme_raporu.xlsx')
-        return send_file(dosya_yolu, as_attachment=True, download_name='degerlendirme_raporu.xlsx')
+        sinif_id = request.args.get('sinif_id', type=int)
+        dosya_yolu = ExcelService.degerlendirme_raporu_olustur('staj_degerlendirme_raporu.xlsx', sinif_id=sinif_id)
+        return send_file(dosya_yolu, as_attachment=True, download_name='staj_degerlendirme_raporu.xlsx')
+    except Exception as e:
+        return jsonify({'basarili': False, 'hata': str(e)}), 500
+
+@main_bp.route('/api/excel/rapor/normal-donem', methods=['GET'])
+def excel_rapor_normal_donem():
+    """Normal dönem notları raporu oluştur (opsiyonel: sınıf filtresi)"""
+    try:
+        sinif_id = request.args.get('sinif_id', type=int)
+        dosya_yolu = ExcelService.normal_donem_raporu_olustur('normal_donem_raporu.xlsx', sinif_id=sinif_id)
+        return send_file(dosya_yolu, as_attachment=True, download_name='normal_donem_raporu.xlsx')
     except Exception as e:
         return jsonify({'basarili': False, 'hata': str(e)}), 500
 
@@ -227,12 +335,18 @@ def ogrenci_detay_sayfa(ogrenci_id):
 # İstatistik API'leri
 @main_bp.route('/api/istatistikler/harf-notlari', methods=['GET'])
 def harf_notu_istatistikleri():
-    """Harf notu dağılımını getir"""
+    """Harf notu dağılımını getir (opsiyonel: sınıf filtresi)"""
     try:
-        from models import StajDegerlendirme
+        from models import StajDegerlendirme, Ogrenci
         
-        # Tüm değerlendirmeleri al
-        degerlendirmeler = StajDegerlendirme.query.all()
+        sinif_id = request.args.get('sinif_id', type=int)
+        
+        # Sınıf filtresi varsa uygula
+        if sinif_id:
+            ogrenci_ids = [o.id for o in Ogrenci.query.filter_by(sinif_id=sinif_id).all()]
+            degerlendirmeler = StajDegerlendirme.query.filter(StajDegerlendirme.ogrenci_id.in_(ogrenci_ids)).all()
+        else:
+            degerlendirmeler = StajDegerlendirme.query.all()
         
         # Harf notlarını say
         harf_notu_sayilari = {}

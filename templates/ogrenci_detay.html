@@ -42,6 +42,9 @@
             <button class="tab-btn" onclick="tabDegistir('degerlendirme')">
                 <i class="fas fa-clipboard-check"></i> Staj Değerlendirme
             </button>
+            <button class="tab-btn" onclick="tabDegistir('normal-donem')">
+                <i class="fas fa-graduation-cap"></i> Normal Dönem Notları
+            </button>
         </div>
 
         <!-- Ziyaret Notları Tab -->
@@ -147,6 +150,153 @@
                         <div class="sonuc-item">
                             <span>HARF NOTU:</span>
                             <strong id="harfNotu" class="harf-notu">-</strong>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-large">
+                            <i class="fas fa-save"></i> Kaydet
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Normal Dönem Notları Tab -->
+        <div id="normal-donem" class="tab-content">
+            <div class="section-header">
+                <h2><i class="fas fa-graduation-cap"></i> Normal Dönem Notları</h2>
+            </div>
+            
+            <form id="normalDonemForm" onsubmit="normalDonemKaydet(event)">
+                <div class="degerlendirme-card">
+                    <h3>Vize Notları</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-file-alt"></i> Vize Notu
+                                <span class="max-puan">(0-100)</span>
+                            </label>
+                            <input type="number" name="vize_notu" step="0.1" min="0" max="100" value="0" onchange="normalDonemHesapla()">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-check-square"></i> Vize Ödev Puanı (Opsiyonel)
+                            </label>
+                            <input type="number" name="vize_odev_puani" step="0.1" min="0" max="100" value="" placeholder="Boş bırakılabilir" onchange="normalDonemHesapla()">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-percent"></i> Ödev Etki Yüzdesi
+                                <span class="max-puan">(0-100%)</span>
+                            </label>
+                            <input type="number" name="vize_odev_yuzdesi" step="0.1" min="0" max="100" value="0" onchange="normalDonemHesapla()">
+                        </div>
+                    </div>
+
+                    <div class="sonuc-item" style="margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 5px;">
+                        <span>Vize Toplam:</span>
+                        <strong id="vizeToplam">0</strong>
+                    </div>
+
+                    <hr style="margin: 20px 0;">
+
+                    <h3>Final Notları</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-file-alt"></i> Final Notu
+                                <span class="max-puan">(0-100)</span>
+                            </label>
+                            <input type="number" name="final_notu" step="0.1" min="0" max="100" value="0" onchange="normalDonemHesapla()">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-check-square"></i> Final Ödev Puanı (Opsiyonel)
+                            </label>
+                            <input type="number" name="final_odev_puani" step="0.1" min="0" max="100" value="" placeholder="Boş bırakılabilir" onchange="normalDonemHesapla()">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-percent"></i> Ödev Etki Yüzdesi
+                                <span class="max-puan">(0-100%)</span>
+                            </label>
+                            <input type="number" name="final_odev_yuzdesi" step="0.1" min="0" max="100" value="0" onchange="normalDonemHesapla()">
+                        </div>
+                    </div>
+
+                    <div class="sonuc-item" style="margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 5px;">
+                        <span>Final Toplam:</span>
+                        <strong id="finalToplam">0</strong>
+                    </div>
+
+                    <hr style="margin: 20px 0;">
+
+                    <h3>Devamsızlık Durumu</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" name="devamsizlik_durumu" onchange="normalDonemHesapla()" style="width: 20px; height: 20px;">
+                                <span><i class="fas fa-check-circle"></i> Devamsızlıktan Geçti</span>
+                            </label>
+                            <small style="color: #666; margin-top: 5px; display: block;">İşaretlenmezse öğrenci devamsızlıktan kalmış sayılır</small>
+                        </div>
+                    </div>
+
+                    <hr style="margin: 20px 0;">
+
+                    <h3>Bütünleme Notları (Opsiyonel)</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-redo"></i> Bütünleme Notu
+                            </label>
+                            <input type="number" name="butunleme_notu" step="0.1" min="0" max="100" value="" placeholder="Boş bırakılabilir" onchange="normalDonemHesapla()">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-check-square"></i> Bütünleme Ödev Puanı (Opsiyonel)
+                            </label>
+                            <input type="number" name="butunleme_odev_puani" step="0.1" min="0" max="100" value="" placeholder="Boş bırakılabilir" onchange="normalDonemHesapla()">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <i class="fas fa-percent"></i> Ödev Etki Yüzdesi
+                                <span class="max-puan">(0-100%)</span>
+                            </label>
+                            <input type="number" name="butunleme_odev_yuzdesi" step="0.1" min="0" max="100" value="0" onchange="normalDonemHesapla()">
+                        </div>
+                    </div>
+
+                    <div class="sonuc-item" style="margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 5px;">
+                        <span>Bütünleme Toplam:</span>
+                        <strong id="butunlemeToplam">-</strong>
+                    </div>
+
+                    <div class="sonuc-card" style="margin-top: 20px;">
+                        <div class="sonuc-item">
+                            <span>GENEL TOPLAM:</span>
+                            <strong id="genelToplam">0</strong> / 100
+                        </div>
+                        <div class="sonuc-item">
+                            <span>HARF NOTU:</span>
+                            <strong id="normalDonemHarfNotu" class="harf-notu">-</strong>
                         </div>
                     </div>
 

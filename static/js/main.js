@@ -42,27 +42,103 @@ function modalKapat(modalId) {
 }
 
 // Sayfa yüklendiğinde
+let seciliSinifId = null;
+
 document.addEventListener('DOMContentLoaded', function() {
+    siniflariYukle();
     ogrencileriYukle();
-    harfNotuGrafigiCiz();
     
     // Modal dışına tıklanınca kapat
     window.onclick = function(event) {
         if (event.target.classList.contains('modal')) {
             event.target.style.display = 'none';
         }
+        
+        // Dropdown dışına tıklanınca kapat
+        if (!event.target.closest('.dropdown')) {
+            document.querySelectorAll('.dropdown-content').forEach(dropdown => {
+                dropdown.style.display = 'none';
+            });
+        }
     };
 });
 
+// Sınıfları yükle
+async function siniflariYukle() {
+    const sonuc = await apiCall('/api/siniflar');
+    
+    if (sonuc.basarili) {
+        const siniflar = sonuc.siniflar;
+        sinifFiltresiDoldur(siniflar);
+        ogrenciSinifSecimiDoldur(siniflar);
+        sinifListesiGoster(siniflar);
+    }
+}
+
+// Sınıf filtresini doldur
+function sinifFiltresiDoldur(siniflar) {
+    const select = document.getElementById('sinifFiltresi');
+    select.innerHTML = '<option value="">Tüm Sınıflar</option>';
+    siniflar.forEach(sinif => {
+        const option = document.createElement('option');
+        option.value = sinif.id;
+        option.textContent = sinif.ad;
+        if (seciliSinifId == sinif.id) {
+            option.selected = true;
+        }
+        select.appendChild(option);
+    });
+}
+
+// Öğrenci ekleme modal'ındaki sınıf seçimini doldur
+function ogrenciSinifSecimiDoldur(siniflar) {
+    const select = document.getElementById('ogrenciSinifSecimi');
+    select.innerHTML = '<option value="">Sınıf Seçin (Opsiyonel)</option>';
+    siniflar.forEach(sinif => {
+        const option = document.createElement('option');
+        option.value = sinif.id;
+        option.textContent = sinif.ad;
+        select.appendChild(option);
+    });
+}
+
+// Sınıf listesini göster
+function sinifListesiGoster(siniflar) {
+    const liste = document.getElementById('sinifListesi');
+    if (siniflar.length === 0) {
+        liste.innerHTML = '<p>Henüz sınıf eklenmemiş</p>';
+        return;
+    }
+    
+    liste.innerHTML = siniflar.map(sinif => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px;">
+            <span><strong>${sinif.ad}</strong></span>
+            <button class="btn btn-icon btn-danger" onclick="sinifSil(${sinif.id}, '${sinif.ad}')">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+// Sınıf filtrele
+async function sinifFiltrele() {
+    const select = document.getElementById('sinifFiltresi');
+    seciliSinifId = select.value ? parseInt(select.value) : null;
+    ogrencileriYukle();
+}
+
 // Öğrencileri yükle
 async function ogrencileriYukle() {
-    const sonuc = await apiCall('/api/ogrenciler');
+    let url = '/api/ogrenciler';
+    if (seciliSinifId) {
+        url += `?sinif_id=${seciliSinifId}`;
+    }
+    const sonuc = await apiCall(url);
     
     if (sonuc.basarili) {
         const ogrenciler = sonuc.ogrenciler;
         ogrencileriGoster(ogrenciler);
         istatistikleriGuncelle(ogrenciler);
-        harfNotuGrafigiCiz(); // Grafiği güncelle
     } else {
         bildirimGoster('Öğrenciler yüklenemedi: ' + sonuc.hata, 'error');
     }
@@ -92,6 +168,7 @@ function ogrencileriGoster(ogrenciler) {
                 <div class="ogrenci-info">
                     <h3>${ogrenci.tam_ad}</h3>
                     <p><i class="fas fa-id-card"></i> ${ogrenci.ogrenci_no}</p>
+                    ${ogrenci.sinif_adi ? `<p><i class="fas fa-users"></i> ${ogrenci.sinif_adi}</p>` : ''}
                     ${ogrenci.telefon ? `<p><i class="fas fa-phone"></i> ${ogrenci.telefon}</p>` : ''}
                 </div>
             </div>
@@ -131,8 +208,9 @@ async function istatistikleriGuncelle(ogrenciler) {
 }
 
 // Yeni öğrenci modal
-function yeniOgrenciModal() {
+async function yeniOgrenciModal() {
     document.getElementById('yeniOgrenciForm').reset();
+    siniflariYukle(); // Sınıfları güncelle
     modalAc('yeniOgrenciModal');
 }
 
@@ -146,7 +224,8 @@ async function ogrenciEkle(event) {
         ad: formData.get('ad'),
         soyad: formData.get('soyad'),
         ogrenci_no: formData.get('ogrenci_no'),
-        telefon: formData.get('telefon')
+        telefon: formData.get('telefon'),
+        sinif_id: formData.get('sinif_id') || null
     };
     
     const sonuc = await apiCall('/api/ogrenciler', 'POST', data);
@@ -194,7 +273,11 @@ function aramaYap() {
 // Excel export
 async function excelExport() {
     try {
-        window.location.href = '/api/excel/export';
+        let url = '/api/excel/export';
+        if (seciliSinifId) {
+            url += `?sinif_id=${seciliSinifId}`;
+        }
+        window.location.href = url;
         bildirimGoster('Excel dosyası indiriliyor...', 'success');
     } catch (error) {
         bildirimGoster('Excel indirme hatası', 'error');
@@ -250,115 +333,95 @@ async function excelImport() {
     }
 }
 
+// Rapor dropdown toggle
+function raporDropdownToggle(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('raporDropdown');
+    const isVisible = dropdown.style.display === 'block';
+    
+    // Diğer dropdown'ları kapat
+    document.querySelectorAll('.dropdown-content').forEach(d => {
+        if (d.id !== 'raporDropdown') {
+            d.style.display = 'none';
+        }
+    });
+    
+    dropdown.style.display = isVisible ? 'none' : 'block';
+}
+
 // Rapor indir
-async function raporIndir() {
+async function raporIndir(tip) {
     try {
-        window.location.href = '/api/excel/rapor';
+        let url = '';
+        if (tip === 'staj') {
+            url = '/api/excel/rapor';
+        } else if (tip === 'normal-donem') {
+            url = '/api/excel/rapor/normal-donem';
+        } else {
+            bildirimGoster('Geçersiz rapor tipi', 'error');
+            return;
+        }
+        
+        if (seciliSinifId) {
+            url += `?sinif_id=${seciliSinifId}`;
+        }
+        
+        // Dropdown'ı kapat
+        document.getElementById('raporDropdown').style.display = 'none';
+        
+        window.location.href = url;
         bildirimGoster('Rapor indiriliyor...', 'success');
     } catch (error) {
         bildirimGoster('Rapor indirme hatası', 'error');
     }
 }
 
-// Harf notu pasta grafiği çiz
-let harfNotuGrafik = null;
+// Sınıf yönetimi modal
+async function sinifYonetimiModal() {
+    siniflariYukle();
+    modalAc('sinifYonetimiModal');
+}
 
-async function harfNotuGrafigiCiz() {
-    const sonuc = await apiCall('/api/istatistikler/harf-notlari');
+// Sınıf ekle
+async function sinifEkle(event) {
+    event.preventDefault();
+    const input = document.getElementById('yeniSinifAd');
+    const ad = input.value.trim();
     
-    if (!sonuc.basarili || Object.keys(sonuc.harf_notlari).length === 0) {
-        // Veri yoksa grafiği gizle
-        const chartContainer = document.querySelector('.chart-container');
-        if (chartContainer) {
-            chartContainer.style.display = 'none';
-        }
+    if (!ad) {
+        bildirimGoster('Sınıf adı gerekli!', 'error');
         return;
     }
     
-    const harfNotlari = sonuc.harf_notlari;
+    const sonuc = await apiCall('/api/siniflar', 'POST', { ad: ad });
     
-    // Harf notlarını sırala (AA, BA, BB, CB, CC, DC, DD, FD, FF)
-    const harfNotuSirasi = ['AA', 'BA', 'BB', 'CB', 'CC', 'DC', 'DD', 'FD', 'FF'];
-    const labels = [];
-    const data = [];
-    
-    harfNotuSirasi.forEach(harf => {
-        if (harfNotlari[harf]) {
-            labels.push(harf);
-            data.push(harfNotlari[harf]);
-        }
-    });
-    
-    // Renkler - her harf notu için farklı renk
-    const colors = [
-        '#2ecc71', // AA - Yeşil
-        '#3498db', // BA - Mavi
-        '#1abc9c', // BB - Turkuaz
-        '#f39c12', // CB - Turuncu
-        '#e67e22', // CC - Koyu Turuncu
-        '#e74c3c', // DC - Kırmızı
-        '#c0392b', // DD - Koyu Kırmızı
-        '#95a5a6', // FD - Gri
-        '#34495e'  // FF - Koyu Gri
-    ];
-    
-    const ctx = document.getElementById('harfNotuGrafik');
-    
-    // Eski grafiği temizle
-    if (harfNotuGrafik) {
-        harfNotuGrafik.destroy();
+    if (sonuc.basarili) {
+        bildirimGoster('Sınıf başarıyla eklendi!', 'success');
+        input.value = '';
+        siniflariYukle();
+    } else {
+        bildirimGoster('Hata: ' + sonuc.hata, 'error');
+    }
+}
+
+// Sınıf sil
+async function sinifSil(sinifId, sinifAd) {
+    if (!confirm(`${sinifAd} sınıfını silmek istediğinize emin misiniz?`)) {
+        return;
     }
     
-    // Yeni grafik oluştur
-    harfNotuGrafik = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Öğrenci Sayısı',
-                data: data,
-                backgroundColor: colors.slice(0, labels.length),
-                borderWidth: 2,
-                borderColor: '#ffffff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        font: {
-                            size: 14,
-                            weight: 'bold'
-                        }
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.parsed || 0;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((value / total) * 100).toFixed(1);
-                            return `${label}: ${value} öğrenci (${percentage}%)`;
-                        }
-                    },
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleFont: {
-                        size: 14,
-                        weight: 'bold'
-                    },
-                    bodyFont: {
-                        size: 13
-                    },
-                    padding: 12,
-                    cornerRadius: 8
-                }
-            }
+    const sonuc = await apiCall(`/api/siniflar/${sinifId}`, 'DELETE');
+    
+    if (sonuc.basarili) {
+        bildirimGoster('Sınıf başarıyla silindi', 'success');
+        siniflariYukle();
+        if (seciliSinifId == sinifId) {
+            seciliSinifId = null;
+            document.getElementById('sinifFiltresi').value = '';
+            ogrencileriYukle();
         }
-    });
+    } else {
+        bildirimGoster('Hata: ' + sonuc.hata, 'error');
+    }
 }
 

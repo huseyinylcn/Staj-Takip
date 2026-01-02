@@ -1,6 +1,7 @@
 from flask import Flask
 from database import db, init_db
 from routes.main_routes import main_bp
+from models import Ogrenci, ZiyaretNotu, StajDegerlendirme, NormalDonemDegerlendirme, Sinif  # Modelleri import et ki tablolar oluşturulsun
 import os
 
 def create_app():

@@ -6,7 +6,6 @@
     <title>Staj Takip Sistemi</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -21,18 +20,39 @@
                     <button class="btn btn-success" onclick="yeniOgrenciModal()">
                         <i class="fas fa-user-plus"></i> Yeni Öğrenci
                     </button>
+                    <button class="btn btn-secondary" onclick="sinifYonetimiModal()">
+                        <i class="fas fa-users"></i> Sınıf Yönetimi
+                    </button>
                     <button class="btn btn-primary" onclick="excelExport()">
                         <i class="fas fa-file-excel"></i> Excel İndir
                     </button>
                     <button class="btn btn-info" onclick="excelImportModal()">
                         <i class="fas fa-file-upload"></i> Excel Yükle
                     </button>
-                    <button class="btn btn-warning" onclick="raporIndir()">
-                        <i class="fas fa-chart-bar"></i> Rapor
-                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-warning" onclick="raporDropdownToggle(event)">
+                            <i class="fas fa-chart-bar"></i> Rapor <i class="fas fa-caret-down"></i>
+                        </button>
+                        <div id="raporDropdown" class="dropdown-content">
+                            <a href="#" onclick="raporIndir('staj'); return false;">
+                                <i class="fas fa-briefcase"></i> Staj Değerlendirme Raporu
+                            </a>
+                            <a href="#" onclick="raporIndir('normal-donem'); return false;">
+                                <i class="fas fa-graduation-cap"></i> Normal Dönem Notları Raporu
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
+
+        <!-- Sınıf Seçimi -->
+        <div class="sinif-secim-container">
+            <label><i class="fas fa-filter"></i> Sınıf Filtresi:</label>
+            <select id="sinifFiltresi" onchange="sinifFiltrele()">
+                <option value="">Tüm Sınıflar</option>
+            </select>
+        </div>
 
         <!-- İstatistikler -->
         <div class="stats-container">
@@ -56,14 +76,6 @@
                     <h3 id="toplamZiyaret">0</h3>
                     <p>Toplam Ziyaret</p>
                 </div>
-            </div>
-        </div>
-
-        <!-- Harf Notu Dağılımı Grafiği -->
-        <div class="chart-container">
-            <h2><i class="fas fa-chart-pie"></i> Harf Notu Dağılımı</h2>
-            <div class="chart-wrapper">
-                <canvas id="harfNotuGrafik"></canvas>
             </div>
         </div>
 
@@ -101,6 +113,12 @@
                     <label><i class="fas fa-phone"></i> Telefon</label>
                     <input type="tel" name="telefon" placeholder="(555) 123 45 67">
                 </div>
+                <div class="form-group">
+                    <label><i class="fas fa-users"></i> Sınıf</label>
+                    <select name="sinif_id" id="ogrenciSinifSecimi">
+                        <option value="">Sınıf Seçin (Opsiyonel)</option>
+                    </select>
+                </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="modalKapat('yeniOgrenciModal')">İptal</button>
                     <button type="submit" class="btn btn-success">Kaydet</button>
@@ -123,6 +141,29 @@
             <div id="uploadSonuc" class="upload-sonuc"></div>
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="modalKapat('excelImportModal')">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sınıf Yönetimi Modal -->
+    <div id="sinifYonetimiModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="modalKapat('sinifYonetimiModal')">&times;</span>
+            <h2><i class="fas fa-users"></i> Sınıf Yönetimi</h2>
+            <div style="margin-bottom: 20px;">
+                <h3>Yeni Sınıf Ekle</h3>
+                <form id="yeniSinifForm" onsubmit="sinifEkle(event)" style="display: flex; gap: 10px;">
+                    <input type="text" id="yeniSinifAd" placeholder="Sınıf Adı" required style="flex: 1;">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Ekle
+                    </button>
+                </form>
+            </div>
+            <div>
+                <h3>Mevcut Sınıflar</h3>
+                <div id="sinifListesi">
+                    <!-- JavaScript ile doldurulacak -->
+                </div>
             </div>
         </div>
     </div>

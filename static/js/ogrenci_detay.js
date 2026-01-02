@@ -61,6 +61,7 @@ async function ogrenciDetayYukle() {
         ogrenciBilgileriGoster(sonuc.ogrenci);
         ziyaretleriGoster(sonuc.ziyaretler);
         degerlendirmeGoster(sonuc.degerlendirme);
+        normalDonemGoster(sonuc.normal_donem);
     } else {
         bildirimGoster('Öğrenci bilgileri yüklenemedi: ' + sonuc.hata, 'error');
     }
@@ -240,6 +241,148 @@ async function degerlendirmeKaydet(event) {
     if (sonuc.basarili) {
         bildirimGoster('Değerlendirme başarıyla kaydedildi!', 'success');
         degerlendirmeGoster(sonuc.degerlendirme);
+    } else {
+        bildirimGoster('Hata: ' + sonuc.hata, 'error');
+    }
+}
+
+// Normal dönem değerlendirmesini göster
+function normalDonemGoster(normalDonem) {
+    if (!normalDonem) return;
+    
+    const form = document.getElementById('normalDonemForm');
+    
+    // Form alanlarını doldur
+    form.vize_notu.value = normalDonem.vize_notu || 0;
+    form.vize_odev_puani.value = normalDonem.vize_odev_puani || '';
+    form.vize_odev_yuzdesi.value = normalDonem.vize_odev_yuzdesi || 0;
+    
+    form.final_notu.value = normalDonem.final_notu || 0;
+    form.final_odev_puani.value = normalDonem.final_odev_puani || '';
+    form.final_odev_yuzdesi.value = normalDonem.final_odev_yuzdesi || 0;
+    
+    form.devamsizlik_durumu.checked = normalDonem.devamsizlik_durumu || false;
+    
+    form.butunleme_notu.value = normalDonem.butunleme_notu || '';
+    form.butunleme_odev_puani.value = normalDonem.butunleme_odev_puani || '';
+    form.butunleme_odev_yuzdesi.value = normalDonem.butunleme_odev_yuzdesi || 0;
+    
+    // Hesaplanmış değerleri göster
+    document.getElementById('vizeToplam').textContent = (normalDonem.vize_toplam || 0).toFixed(2);
+    document.getElementById('finalToplam').textContent = (normalDonem.final_toplam || 0).toFixed(2);
+    document.getElementById('butunlemeToplam').textContent = normalDonem.butunleme_toplam !== null ? normalDonem.butunleme_toplam.toFixed(2) : '-';
+    document.getElementById('genelToplam').textContent = (normalDonem.genel_toplam || 0).toFixed(2);
+    document.getElementById('normalDonemHarfNotu').textContent = normalDonem.harf_notu || '-';
+}
+
+// Normal dönem hesapla
+function normalDonemHesapla() {
+    const form = document.getElementById('normalDonemForm');
+    
+    // Vize hesaplama
+    let vize = parseFloat(form.vize_notu.value || 0);
+    let vizeOdev = form.vize_odev_puani.value ? parseFloat(form.vize_odev_puani.value) : null;
+    let vizeOdevYuzdesi = parseFloat(form.vize_odev_yuzdesi.value || 0);
+    
+    let vizeToplam = vize;
+    if (vizeOdev !== null && vizeOdevYuzdesi > 0) {
+        let vizeAgirlik = (100 - vizeOdevYuzdesi) / 100;
+        let odevAgirlik = vizeOdevYuzdesi / 100;
+        vizeToplam = (vize * vizeAgirlik) + (vizeOdev * odevAgirlik);
+    }
+    document.getElementById('vizeToplam').textContent = vizeToplam.toFixed(2);
+    
+    // Final hesaplama
+    let final = parseFloat(form.final_notu.value || 0);
+    let finalOdev = form.final_odev_puani.value ? parseFloat(form.final_odev_puani.value) : null;
+    let finalOdevYuzdesi = parseFloat(form.final_odev_yuzdesi.value || 0);
+    
+    let finalToplam = final;
+    if (finalOdev !== null && finalOdevYuzdesi > 0) {
+        let finalAgirlik = (100 - finalOdevYuzdesi) / 100;
+        let odevAgirlik = finalOdevYuzdesi / 100;
+        finalToplam = (final * finalAgirlik) + (finalOdev * odevAgirlik);
+    }
+    document.getElementById('finalToplam').textContent = finalToplam.toFixed(2);
+    
+    // Bütünleme hesaplama
+    let butunleme = form.butunleme_notu.value ? parseFloat(form.butunleme_notu.value) : null;
+    let butOdev = form.butunleme_odev_puani.value ? parseFloat(form.butunleme_odev_puani.value) : null;
+    let butOdevYuzdesi = parseFloat(form.butunleme_odev_yuzdesi.value || 0);
+    
+    let butunlemeToplam = null;
+    if (butunleme !== null) {
+        butunlemeToplam = butunleme;
+        if (butOdev !== null && butOdevYuzdesi > 0) {
+            let butAgirlik = (100 - butOdevYuzdesi) / 100;
+            let odevAgirlik = butOdevYuzdesi / 100;
+            butunlemeToplam = (butunleme * butAgirlik) + (butOdev * odevAgirlik);
+        }
+        document.getElementById('butunlemeToplam').textContent = butunlemeToplam.toFixed(2);
+    } else {
+        document.getElementById('butunlemeToplam').textContent = '-';
+    }
+    
+    // Devamsızlık kontrolü
+    let devamsizlikDurumu = form.devamsizlik_durumu.checked;
+    
+    // Genel toplam hesaplama
+    let genelToplam = 0;
+    let harfNotu = '-';
+    
+    if (!devamsizlikDurumu) {
+        genelToplam = 0;
+        harfNotu = 'FF';
+    } else {
+        // Bütünleme varsa onu kullan, yoksa vize+final
+        if (butunlemeToplam !== null) {
+            genelToplam = butunlemeToplam;
+        } else {
+            // Vize %40, Final %60
+            genelToplam = (vizeToplam * 0.4) + (finalToplam * 0.6);
+        }
+        
+        // Harf notunu hesapla (resimdeki ölçek)
+        if (genelToplam >= 82) harfNotu = 'AA';
+        else if (genelToplam >= 74) harfNotu = 'BA';
+        else if (genelToplam >= 65) harfNotu = 'BB';
+        else if (genelToplam >= 58) harfNotu = 'CB';
+        else if (genelToplam >= 50) harfNotu = 'CC';
+        else if (genelToplam >= 40) harfNotu = 'DC';
+        else if (genelToplam >= 35) harfNotu = 'DD';
+        else if (genelToplam >= 25) harfNotu = 'FD';
+        else harfNotu = 'FF';
+    }
+    
+    document.getElementById('genelToplam').textContent = genelToplam.toFixed(2);
+    document.getElementById('normalDonemHarfNotu').textContent = harfNotu;
+}
+
+// Normal dönem kaydet
+async function normalDonemKaydet(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const data = {
+        vize_notu: parseFloat(formData.get('vize_notu') || 0),
+        vize_odev_puani: formData.get('vize_odev_puani') ? parseFloat(formData.get('vize_odev_puani')) : null,
+        vize_odev_yuzdesi: parseFloat(formData.get('vize_odev_yuzdesi') || 0),
+        final_notu: parseFloat(formData.get('final_notu') || 0),
+        final_odev_puani: formData.get('final_odev_puani') ? parseFloat(formData.get('final_odev_puani')) : null,
+        final_odev_yuzdesi: parseFloat(formData.get('final_odev_yuzdesi') || 0),
+        devamsizlik_durumu: formData.get('devamsizlik_durumu') === 'on',
+        butunleme_notu: formData.get('butunleme_notu') ? parseFloat(formData.get('butunleme_notu')) : null,
+        butunleme_odev_puani: formData.get('butunleme_odev_puani') ? parseFloat(formData.get('butunleme_odev_puani')) : null,
+        butunleme_odev_yuzdesi: parseFloat(formData.get('butunleme_odev_yuzdesi') || 0)
+    };
+    
+    const sonuc = await apiCall(`/api/normal-donem/${ogrenciId}`, 'POST', data);
+    
+    if (sonuc.basarili) {
+        bildirimGoster('Normal dönem notları başarıyla kaydedildi!', 'success');
+        normalDonemGoster(sonuc.degerlendirme);
     } else {
         bildirimGoster('Hata: ' + sonuc.hata, 'error');
     }
