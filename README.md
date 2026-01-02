@@ -2,6 +2,30 @@
 
 Öğretmenlerin öğrencilerin staj süreçlerini takip edebileceği, ziyaret notları düşebileceği ve staj değerlendirmesi yapabileceği **profesyonel ve kullanımı kolay** bir web uygulaması.
 
+## 📖 Proje Tanıtımı
+
+### 🎯 Projenin Amacı
+
+Staj Takip Sistemi, eğitim kurumlarında öğrencilerin staj süreçlerini dijital ortamda yönetmek ve değerlendirmek için geliştirilmiş bir web uygulamasıdır. Sistem, öğretmenlerin staj ziyaretlerini kaydetmesini, öğrencilerin staj performanslarını detaylı kriterlerle değerlendirmesini ve normal dönem notlarını yönetmesini sağlar.
+
+### 📍 Kullanım Alanları
+
+Bu sistem şu kurumlarda kullanılabilir:
+
+- **Üniversiteler** - Mühendislik, İşletme, Sağlık vb. fakültelerde staj takibi
+- **Meslek Yüksekokulları** - Teknik programlarda uygulamalı eğitim takibi
+- **Teknik Kolejler** - Endüstriyel staj programları yönetimi
+- **Meslek Liseleri** - Öğrencilerin işletme stajlarının takibi
+
+### ⚡ Ana Özellikler
+
+- **Öğrenci Yönetimi**: Sınıf bazlı öğrenci kayıt ve takip sistemi
+- **Staj Değerlendirme**: 8 kriterli detaylı notlama sistemi (İşyeren notu, içindekiler, firma bilgisi, yazım düzeni, resim/şekil, dil kullanımı, sonuç bölümü, defter düzeni/mülakat)
+- **Normal Dönem Notları**: Vize, final ve bütünleme notlarının yönetimi, ödev puanı entegrasyonu, devamsızlık takibi
+- **Ziyaret Takibi**: Öğretmen ziyaret notlarının kronolojik kaydı
+- **Excel Raporlama**: Detaylı Excel raporları ile veri analizi ve arşivleme
+- **Sınıf Bazlı Filtreleme**: Sınıflara göre öğrenci listeleme ve raporlama
+
 ## ✨ Özellikler
 
 ### 👥 Öğrenci Yönetimi
